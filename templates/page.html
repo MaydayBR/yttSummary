@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Video Summary and Q&A</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 600px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        input, button {
+            margin: 10px 0;
+            padding: 10px;
+            font-size: 16px;
+        }
+        input {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .response {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 4px solid #4CAF50;
+            width: 24px;
+            height: 24px;
+            animation: spin 2s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>YouTube Video Summary and Q&A</h1>
+        <form id="summaryForm">
+            <label for="yt_url">Enter YouTube URL:</label>
+            <input type="text" id="yt_url" name="yt_url" required>
+            <button type="submit">Get Summary</button>
+        </form>
+        <div id="summarySection" style="display: none;">
+            <h2>Video Summary</h2>
+            <p id="summary"></p>
+            <h3>Ask a Question</h3>
+            <form id="questionForm">
+                <label for="user_question">Your Question:</label>
+                <input type="text" id="user_question" name="user_question" required>
+                <button type="submit">Get Answer</button>
+            </form>
+            <div id="answerSection" style="display: none;">
+                <h3>Answer</h3>
+                <p id="answer"></p>
+            </div>
+        </div>
+        <div class="overlay">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function() {
+            function showSpinner() {
+                $('.overlay').show();
+                $('.loading-spinner').show();
+            }
+
+            function hideSpinner() {
+                $('.overlay').hide();
+                $('.loading-spinner').hide();
+            }
+
+            $('#summaryForm').on('submit', function(e) {
+                e.preventDefault();
+                const yt_url = $('#yt_url').val();
+                showSpinner();
+                $.ajax({
+                    url: '/generate-response',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ yt_url: yt_url, user_question: "Initial Summary" }),
+                    success: function(data) {
+                        $('#summary').text(data.summary);
+                        $('#summarySection').show();
+                        hideSpinner();
+                    },
+                    error: function(err) {
+                        alert('Error fetching summary');
+                        hideSpinner();
+                    }
+                });
+            });
+
+            $('#questionForm').on('submit', function(e) {
+                e.preventDefault();
+                const yt_url = $('#yt_url').val();
+                const user_question = $('#user_question').val();
+                showSpinner();
+                $.ajax({
+                    url: '/generate-response',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ yt_url: yt_url, user_question: user_question }),
+                    success: function(data) {
+                        $('#answer').text(data.response);
+                        $('#answerSection').show();
+                        hideSpinner();
+                    },
+                    error: function(err) {
+                        alert('Error fetching answer');
+                        hideSpinner();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
