@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, render_template
 import os
 from youtube_transcript_api import YouTubeTranscriptApi
 
-from openai import OpenAI
+import openai
 
 
 from dotenv import load_dotenv
@@ -13,8 +13,7 @@ app = Flask(__name__)
 
 load_dotenv(dotenv_path='key.env') 
 
-# Initialize OpenAI API client
-client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
 @app.route('/')
 def index():
@@ -37,7 +36,7 @@ def summary(url):
     sentence = x['text']
     output += f' {sentence}\n'    #creates a string where each line has the transcipt with only words
 
-  response = client.chat.completions.create(
+  response = openai.ChatCompletion.create(
     model="gpt-3.5-turbo",
     messages=[
         {"role": "system", "content": "You are a journalist."},
@@ -45,7 +44,7 @@ def summary(url):
     ])
   #response holds the entire response from chat gpt
   #summary has all of the content 
-  summary = response.choices[0].message.content
+  summary = response.choices[0].message['content']
   return summary
 
 
@@ -85,7 +84,7 @@ def generate_response(user_question,yt_url):
     prompt = template.format(youtube_transcript = info , user_question = user_question)  #format the question to AI
 
     try:
-        response = client.chat.completions.create(model="gpt-3.5-turbo",
+        response = openai.ChatCompletion.create(model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": prompt}
