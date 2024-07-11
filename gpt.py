@@ -1,19 +1,17 @@
 from flask import Flask, request, jsonify, render_template
 import os
 from youtube_transcript_api import YouTubeTranscriptApi
-
 import openai
-
-
 from dotenv import load_dotenv
-load_dotenv(dotenv_path='key.env') 
+from flask_cors import CORS  # Added this line to import CORS
 
+load_dotenv(dotenv_path='key.env')
 
 app = Flask(__name__)
-
-load_dotenv(dotenv_path='key.env') 
+CORS(app) 
 
 openai.api_key = os.getenv('OPENAI_API_KEY')
+print(f"Loaded API Key: {openai.api_key}") 
 
 @app.route('/')
 def index():
@@ -51,7 +49,7 @@ def summary(url):
 def scrape_youtube_video(url):
   #we only want the last part of the url 
   video_id = url.replace('https://www.youtube.com/watch?v=', '')
-  print(video_id)
+  print(f"Video ID: {video_id}")
 
   #creates json with -  text tag, start tag, duration tag.
   try:
